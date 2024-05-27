@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return ''; // Return empty string if no breakpoint matches
     }
 
-    function updateVideoAndPoster(video, breakpoints, cloudName) {
+    function updateVideoAndPoster(video, cloudName) {
         const container = video.getAttribute('r-video_element');
         let containerWidth;
         if (container === 'viewport') {
@@ -26,12 +26,15 @@ document.addEventListener("DOMContentLoaded", function () {
             containerWidth = video.offsetWidth;
         }
 
+        const breakpointsAttr = video.getAttribute('r-video_breakpoints');
+        const breakpoints = parseBreakpoints(breakpointsAttr || defaultBreakpoints);
+
         const videoWidth = getVideoWidth(breakpoints, containerWidth);
 
         if (videoWidth.toString() === video.getAttribute('data-video-width')) {
             return;
         }
-        
+
         video.setAttribute('data-video-width', videoWidth.toString());
 
         const videoId = video.getAttribute('r-video_id');
@@ -81,16 +84,13 @@ document.addEventListener("DOMContentLoaded", function () {
     function initVideoOptimization(cloudName) {
         const videos = document.querySelectorAll('video[r-video_element]');
 
-        const breakpointsAttr = videos[0].getAttribute('r-video_breakpoints');
-        const breakpoints = parseBreakpoints(breakpointsAttr || defaultBreakpoints);
-
         videos.forEach(video => {
-            updateVideoAndPoster(video, breakpoints, cloudName);
+            updateVideoAndPoster(video, cloudName);
         });
 
         window.addEventListener('resize', () => {
             videos.forEach(video => {
-                updateVideoAndPoster(video, breakpoints, cloudName);
+                updateVideoAndPoster(video, cloudName);
             });
         });
     }
