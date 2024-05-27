@@ -1,17 +1,25 @@
 document.addEventListener("DOMContentLoaded", function () {
-    console.log("DOMContentLoaded event fired");
     const defaultBreakpoints = "1919/1919, 1439/1439, 1279/1279, 991/991, 767/767, 479/479";
 
     function parseBreakpoints(breakpointStr) {
-        console.log("Parsing breakpoints");
         return breakpointStr.split(',').map(bp => {
             const [minWidth, videoWidth] = bp.trim().split('/').map(Number);
             return { minWidth, videoWidth };
         });
     }
 
-    function getVideoWidth(breakpoints, containerWidth) {
-        console.log("Getting video width");
+    function getVideoWidth(video) {
+        const breakpointsAttr = video.getAttribute('r-video_breakpoints');
+        const breakpoints = parseBreakpoints(breakpointsAttr || defaultBreakpoints);
+
+        const container = video.getAttribute('r-video_element');
+        let containerWidth;
+        if (container === 'viewport') {
+            containerWidth = window.innerWidth;
+        } else if (container === 'self') {
+            containerWidth = video.offsetWidth;
+        }
+        
         for (const bp of breakpoints) {
             if (containerWidth <= bp.minWidth) {
                 return bp.videoWidth;
@@ -20,24 +28,10 @@ document.addEventListener("DOMContentLoaded", function () {
         return ''; // Return empty string if no breakpoint matches
     }
 
-    function updateVideoAndPoster(video, cloudName) {
-        console.log("Updating video and poster");
-        const container = video.getAttribute('r-video_element');
-        let containerWidth;
-        if (container === 'viewport') {
-            containerWidth = window.innerWidth;
-        } else if (container === 'self') {
-            containerWidth = video.offsetWidth;
-        }
+    function updateVideo(video, cloudName) {
+                
 
-        const breakpointsAttr = video.getAttribute('r-video_breakpoints');
-        const breakpoints = parseBreakpoints(breakpointsAttr || defaultBreakpoints);
-
-        const videoWidth = getVideoWidth(breakpoints, containerWidth);
-
-        if (videoWidth.toString() === video.getAttribute('data-video-width')) {
-            return;
-        }
+        const videoWidth = getVideoWidth(video);
 
         video.setAttribute('data-video-width', videoWidth.toString());
 
@@ -56,23 +50,27 @@ document.addEventListener("DOMContentLoaded", function () {
         const source = video.querySelector('source') || document.createElement('source');
         const lazyLoad = video.getAttribute('r-video_lazy-load') === 'true';
 
+        const videoShouldPlay = !video.paused || (video.getAttribute('autoplay') == true);
+
         if (lazyLoad) {
             source.setAttribute('data-src', videoUrl);
             if (source.getAttribute('src')) {
                 source.setAttribute('src', videoUrl);
+                if  (videoShouldPlay) { video.play(); } // check here if the video has been playing
             }
         }
         else {
             source.setAttribute('src', videoUrl);
+            if  (videoShouldPlay) { video.play(); }
         }
         if (!source.parentNode) {
             video.appendChild(source);
         }
 
-        const autoPoster = video.getAttribute('r-video_autoposter');
+        const autoPoster = video.getAttribute('r-video_autoposter') ? true : false;
         const posterImage = `https://res.cloudinary.com/${cloudNameOverride}/video/upload/pg_1,w_${videoWidth},q_auto/${videoId}.webp`;
 
-        if (!autoPoster) {
+        if (autoPoster) {
             if (lazyLoad) {
                 video.setAttribute('data-poster', posterImage);
                 if (video.getAttribute('poster')) {
@@ -82,20 +80,22 @@ document.addEventListener("DOMContentLoaded", function () {
             else {
                 video.setAttribute('poster', posterImage);
             }
-        }
+        }        
     }
 
     function initVideoOptimization(cloudName) {
-        console.log("Initializing video optimization");
         const videos = document.querySelectorAll('video[r-video_element]');
 
         videos.forEach(video => {
-            updateVideoAndPoster(video, cloudName);
+            updateVideo(video, cloudName);
         });
 
         window.addEventListener('resize', () => {
             videos.forEach(video => {
-                updateVideoAndPoster(video, cloudName);
+                const newWidth = getVideoWidth(video);
+                if(newWidth != video.getAttribute('data-video-width')) {
+                    updateVideo(video, cloudName);
+                }
             });
         });
     }
