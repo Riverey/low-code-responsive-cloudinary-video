@@ -1,44 +1,32 @@
+//1.0.1
 document.addEventListener("DOMContentLoaded", function () {
-    const defaultBreakpoints = "1919/1919, 1439/1439, 1279/1279, 991/991, 767/767, 479/479";
+    const defaultBreakpoints = "1920, 1440, 1280, 992, 768, 480";
 
-    function parseBreakpoints(breakpointStr) {
-        return breakpointStr.split(',').map(bp => {
-            const [minWidth, videoWidth] = bp.trim().split('/').map(Number);
-            return { minWidth, videoWidth };
-        });
-    }
+    const cloudName = (document.querySelector('[r-video_cloud-name]') || {}).getAttribute('r-video_cloud-name') || null;
 
-    function getVideoWidth(video) {
-        const breakpointsAttr = video.getAttribute('r-video_breakpoints');
-        const breakpoints = parseBreakpoints(breakpointsAttr || defaultBreakpoints);
-
-        const container = video.getAttribute('r-video_element');
-        let containerWidth;
-        if (container === 'viewport') {
-            containerWidth = window.innerWidth;
-        } else if (container === 'self') {
-            containerWidth = video.offsetWidth;
+    function generateBreakpoint(video) {
+        const videoWidth = video.offsetWidth;
+        let breakpoints = video.getAttribute("r-video_breakpoints");
+        if (!breakpoints) {
+            breakpoints = defaultBreakpoints;
         }
-        
-        for (const bp of breakpoints) {
-            if (containerWidth <= bp.minWidth) {
-                return bp.videoWidth;
+        breakpoints = breakpoints.split(',').map(bp => Number(bp.trim())).sort((a, b) => a - b);
+        for (let i = 0; i < breakpoints.length; i++) {
+            if (breakpoints[i] > videoWidth) {
+                return breakpoints[i];
             }
         }
-        return ''; // Return empty string if no breakpoint matches
+        return breakpoints[breakpoints.length - 1];
     }
 
-    function updateVideo(video, cloudName) {
-                
-
-        const videoWidth = getVideoWidth(video);
-
-        video.setAttribute('data-video-width', videoWidth.toString());
+    function UpdateVideo(video) {
+        const newBreakpoint = generateBreakpoint(video);
+        video.setAttribute('data-prev-breakpoint', newBreakpoint.toString());
 
         const videoId = video.getAttribute('r-video_id');
-        const cloudNameOverride = video.getAttribute('r-video_cloud-name') || cloudName || '';
+        const localCloudName = video.getAttribute('r-video_cloud-name') || cloudName || '';
 
-        if (!cloudNameOverride) {
+        if (!localCloudName) {
             console.error(`Error: Cloud name is not provided for video with ID ${videoId}`);
             return;
         }
@@ -46,29 +34,30 @@ document.addEventListener("DOMContentLoaded", function () {
         let autoFormat = video.getAttribute('r-video_autoformat') ? (video.getAttribute('r-video_autoformat') === 'true' ? 'f_auto' : `f_${video.getAttribute('r-video_autoformat')}`) : 'f_auto';
         let autoQuality = video.getAttribute('r-video_autoquality') ? (video.getAttribute('r-video_autoquality') === 'true' ? 'q_auto' : `q_${video.getAttribute('r-video_autoquality')}`) : 'q_auto';
 
-        const videoUrl = `https://res.cloudinary.com/${cloudNameOverride}/video/upload/${autoFormat},${autoQuality}${videoWidth ? `,w_${videoWidth}` : ''}/v1/${videoId}.mp4`;
+        const videoUrl = `https://res.cloudinary.com/${localCloudName}/video/upload/${autoFormat},${autoQuality}${newBreakpoint ? `,w_${newBreakpoint}` : ''}/${videoId}.webm`;
         const source = video.querySelector('source') || document.createElement('source');
         const lazyLoad = video.getAttribute('r-video_lazy-load') === 'true';
 
-        const videoShouldPlay = !video.paused || (video.getAttribute('autoplay') == true);
+        const isPlaying = !video.paused || (video.getAttribute('autoplay') == true);
 
         if (lazyLoad) {
             source.setAttribute('data-src', videoUrl);
+            source.setAttribute('type', 'video/webm');
             if (source.getAttribute('src')) {
                 source.setAttribute('src', videoUrl);
-                if  (videoShouldPlay) { video.play(); } // check here if the video has been playing
+                video.load();
             }
         }
         else {
             source.setAttribute('src', videoUrl);
-            if  (videoShouldPlay) { video.play(); }
+            video.load();
         }
         if (!source.parentNode) {
             video.appendChild(source);
         }
 
-        const autoPoster = video.getAttribute('r-video_autoposter') ? true : false;
-        const posterImage = `https://res.cloudinary.com/${cloudNameOverride}/video/upload/pg_1,w_${videoWidth},q_auto/${videoId}.webp`;
+        const autoPoster = video.getAttribute('r-video_autoposter') ? video.getAttribute('r-video_autoposter') : true;
+        const posterImage = `https://res.cloudinary.com/${localCloudName}/video/upload/pg_1,w_${newBreakpoint},q_auto/${videoId}.webp`;
 
         if (autoPoster) {
             if (lazyLoad) {
@@ -80,29 +69,29 @@ document.addEventListener("DOMContentLoaded", function () {
             else {
                 video.setAttribute('poster', posterImage);
             }
-        }        
+        }
     }
 
-    function initVideoOptimization(cloudName) {
+    function init() {
         const videos = document.querySelectorAll('video[r-video_element]');
 
         videos.forEach(video => {
-            updateVideo(video, cloudName);
+            UpdateVideo(video);
+            console.log("Initialising the video");
         });
 
         window.addEventListener('resize', () => {
             videos.forEach(video => {
-                const newWidth = getVideoWidth(video);
-                if(newWidth != video.getAttribute('data-video-width')) {
-                    updateVideo(video, cloudName);
+                const newBreakpoint = generateBreakpoint(video);                
+                console.log("Updating the video, the breakpoint is " + newBreakpoint + ", old one is " + video.getAttribute('data-prev-breakpoint'));
+                if (newBreakpoint != video.getAttribute('data-prev-breakpoint')) {
+                    UpdateVideo(video);
                 }
             });
         });
     }
 
-    // Get cloud name from the DOM element with attribute "r-video_cloud-name"
-    const cloudNameElement = document.querySelector('[r-video_cloud-name]');
-    const cloudName = cloudNameElement ? cloudNameElement.getAttribute('r-video_cloud-name') : '';
 
-    initVideoOptimization(cloudName);
+
+    init();
 });
