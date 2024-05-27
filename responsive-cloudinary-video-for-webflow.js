@@ -49,10 +49,10 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        let autoFormat = video.getAttribute('r-video_autoformat') !== 'false' ? (video.getAttribute('r-video_autoformat') === 'true' ? 'f_auto' : `f_${video.getAttribute('r-video_autoformat')}`) : 'f_auto';
-        let autoQuality = video.getAttribute('r-video_autoquality') !== 'false' ? (video.getAttribute('r-video_autoquality') === 'true' ? 'q_auto' : `q_${video.getAttribute('r-video_autoquality')}`) : 'q_auto';
+        let autoFormat = video.getAttribute('r-video_autoformat') ? (video.getAttribute('r-video_autoformat') === 'true' ? 'f_auto' : `f_${video.getAttribute('r-video_autoformat')}`) : 'f_auto';
+        let autoQuality = video.getAttribute('r-video_autoquality') ? (video.getAttribute('r-video_autoquality') === 'true' ? 'q_auto' : `q_${video.getAttribute('r-video_autoquality')}`) : 'q_auto';
 
-        const videoUrl = `https://res.cloudinary.com/${cloudNameOverride}/video/upload/${autoFormat},${autoQuality}${videoWidth ? `,w_${videoWidth}` : ''}/${videoId}.mp4`;
+        const videoUrl = `https://res.cloudinary.com/${cloudNameOverride}/video/upload/${autoFormat},${autoQuality}${videoWidth ? `,w_${videoWidth}` : ''}/v1/${videoId}.mp4`;
         const source = video.querySelector('source') || document.createElement('source');
         const lazyLoad = video.getAttribute('r-video_lazy-load') === 'true';
 
