@@ -1,7 +1,9 @@
 document.addEventListener("DOMContentLoaded", function () {
+    console.log("DOMContentLoaded event fired");
     const defaultBreakpoints = "1919/1919, 1439/1439, 1279/1279, 991/991, 767/767, 479/479";
 
     function parseBreakpoints(breakpointStr) {
+        console.log("Parsing breakpoints");
         return breakpointStr.split(',').map(bp => {
             const [minWidth, videoWidth] = bp.trim().split('/').map(Number);
             return { minWidth, videoWidth };
@@ -9,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function getVideoWidth(breakpoints, containerWidth) {
+        console.log("Getting video width");
         for (const bp of breakpoints) {
             if (containerWidth <= bp.minWidth) {
                 return bp.videoWidth;
@@ -18,6 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function updateVideoAndPoster(video, cloudName) {
+        console.log("Updating video and poster");
         const container = video.getAttribute('r-video_element');
         let containerWidth;
         if (container === 'viewport') {
@@ -82,6 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function initVideoOptimization(cloudName) {
+        console.log("Initializing video optimization");
         const videos = document.querySelectorAll('video[r-video_element]');
 
         videos.forEach(video => {
