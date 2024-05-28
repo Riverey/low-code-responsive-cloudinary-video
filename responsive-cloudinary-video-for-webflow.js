@@ -1,4 +1,4 @@
-//1.0.3
+//1.0.5
 document.addEventListener("DOMContentLoaded", function () {
     const defaultBreakpoints = "1920, 1440, 1280, 992, 768, 480";
     const cloudName = (document.querySelector('[r-video_cloud-name]') || {}).getAttribute('r-video_cloud-name') || null;
@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
         let autoFormat = video.getAttribute('r-video_autoformat') ? (video.getAttribute('r-video_autoformat') === 'auto' ? 'f_auto' : `f_${video.getAttribute('r-video_autoformat')}`) : '';
         let autoQuality = video.getAttribute('r-video_autoquality') ? (video.getAttribute('r-video_autoquality') === 'auto' ? 'q_auto' : `q_${video.getAttribute('r-video_autoquality')}`) : '';
 
-        const videoUrl = `https://res.cloudinary.com/${localCloudName}/video/upload/${autoFormat},${autoQuality}${newBreakpoint ? `,w_${newBreakpoint}` : ''}${closestRatio ? `,ar_${closestRatio}` : ''}/${videoId}.webm`;
+        const videoUrl = `https://res.cloudinary.com/${localCloudName}/video/upload${autoFormat ? `/${autoFormat}` : ''}${autoQuality ? `/${autoQuality}` : ''}${newBreakpoint ? `,w_${newBreakpoint}` : ''}${closestRatio ? `,ar_${closestRatio}` : ''}/${videoId}.webm`;
         const source = video.querySelector('source') || document.createElement('source');
         const lazyLoad = video.getAttribute('r-video_lazy-load') === 'true';
 
