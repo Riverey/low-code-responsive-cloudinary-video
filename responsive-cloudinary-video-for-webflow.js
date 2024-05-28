@@ -1,7 +1,6 @@
 //1.0.1
 document.addEventListener("DOMContentLoaded", function () {
     const defaultBreakpoints = "1920, 1440, 1280, 992, 768, 480";
-
     const cloudName = (document.querySelector('[r-video_cloud-name]') || {}).getAttribute('r-video_cloud-name') || null;
 
     function generateBreakpoint(video) {
@@ -19,9 +18,29 @@ document.addEventListener("DOMContentLoaded", function () {
         return breakpoints[breakpoints.length - 1];
     }
 
-    function UpdateVideo(video) {
+    function calculateClosestRatio(aspectRatios, video) {
+        const videoHeight = video.offsetHeight;
+        const ratios = aspectRatios.split(',').map(ratio => ratio.trim());
+        let closestRatio = ratios[0];
+        let minDiff = Math.abs(videoHeight - eval(ratios[0]));
+        for (let i = 1; i < ratios.length; i++) {
+            let diff = Math.abs(videoHeight - eval(ratios[i]));
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestRatio = ratios[i];
+            }
+        }
+        return closestRatio;
+    }
+
+    function updateVideo(video) {
         const newBreakpoint = generateBreakpoint(video);
         video.setAttribute('data-prev-breakpoint', newBreakpoint.toString());
+
+        const aspectRatios = video.getAttribute('r-video_aspect-ratios');
+        if (aspectRatios) {
+            const closestRatio = calculateClosestRatio(aspectRatios, video);
+        }
 
         const videoId = video.getAttribute('r-video_id');
         const localCloudName = video.getAttribute('r-video_cloud-name') || cloudName || '';
@@ -34,11 +53,9 @@ document.addEventListener("DOMContentLoaded", function () {
         let autoFormat = video.getAttribute('r-video_autoformat') ? (video.getAttribute('r-video_autoformat') === 'true' ? 'f_auto' : `f_${video.getAttribute('r-video_autoformat')}`) : 'f_auto';
         let autoQuality = video.getAttribute('r-video_autoquality') ? (video.getAttribute('r-video_autoquality') === 'true' ? 'q_auto' : `q_${video.getAttribute('r-video_autoquality')}`) : 'q_auto';
 
-        const videoUrl = `https://res.cloudinary.com/${localCloudName}/video/upload/${autoFormat},${autoQuality}${newBreakpoint ? `,w_${newBreakpoint}` : ''}/${videoId}.webm`;
+        const videoUrl = `https://res.cloudinary.com/${localCloudName}/video/upload/${autoFormat},${autoQuality}${newBreakpoint ? `,w_${newBreakpoint}` : ''}${closestRatio ? `,ar_${closestRatio}` : ''}/${videoId}.webm`;
         const source = video.querySelector('source') || document.createElement('source');
         const lazyLoad = video.getAttribute('r-video_lazy-load') === 'true';
-
-        const isPlaying = !video.paused || (video.getAttribute('autoplay') == true);
 
         if (lazyLoad) {
             source.setAttribute('data-src', videoUrl);
@@ -76,7 +93,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const videos = document.querySelectorAll('video[r-video_element]');
 
         videos.forEach(video => {
-            UpdateVideo(video);
+            updateVideo(video);
             console.log("Initialising the video");
         });
 
@@ -84,14 +101,12 @@ document.addEventListener("DOMContentLoaded", function () {
             videos.forEach(video => {
                 const newBreakpoint = generateBreakpoint(video);                
                 console.log("Updating the video, the breakpoint is " + newBreakpoint + ", old one is " + video.getAttribute('data-prev-breakpoint'));
-                if (newBreakpoint != video.getAttribute('data-prev-breakpoint')) {
-                    UpdateVideo(video);
+                if (newBreakpoint > video.getAttribute('data-prev-breakpoint')) {
+                    updateVideo(video); //only update if bigger than the previous breakpoint
                 }
             });
         });
     }
-
-
 
     init();
 });
