@@ -1,4 +1,4 @@
-//1.0.5
+//1.0.6
 document.addEventListener("DOMContentLoaded", function () {
     const defaultBreakpoints = "1920, 1440, 1280, 992, 768, 480";
     const cloudName = (document.querySelector('[r-video_cloud-name]') || {}).getAttribute('r-video_cloud-name') || null;
