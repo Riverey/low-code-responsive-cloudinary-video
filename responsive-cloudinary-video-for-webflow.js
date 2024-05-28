@@ -19,17 +19,20 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function calculateClosestRatio(aspectRatios, video) {
+        const videoWidth = video.offsetWidth;
         const videoHeight = video.offsetHeight;
+        const currentRatio = videoWidth / videoHeight;
         const ratios = aspectRatios.split(',').map(ratio => ratio.trim());
         let closestRatio = ratios[0];
-        let minDiff = Math.abs(videoHeight - eval(ratios[0]));
+        let minDiff = Math.abs(currentRatio - eval(ratios[0]));
         for (let i = 1; i < ratios.length; i++) {
-            let diff = Math.abs(videoHeight - eval(ratios[i]));
+            let diff = Math.abs(currentRatio - eval(ratios[i]));
             if (diff < minDiff) {
                 minDiff = diff;
                 closestRatio = ratios[i];
             }
         }
+        console.log("Calculated ratio is " + closestRatio, " video with is " + videoWidth + "x" + videoHeight);
         return closestRatio;
     }
 
