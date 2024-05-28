@@ -59,6 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         let videoUrl = `https://res.cloudinary.com/${localCloudName}/video/upload/`;
         let parameters = [];
+        parameters.push('c_fill');
         if (autoFormat) parameters.push(autoFormat);
         if (autoQuality) parameters.push(autoQuality);
         if (newBreakpoint) parameters.push(`w_${newBreakpoint}`);
