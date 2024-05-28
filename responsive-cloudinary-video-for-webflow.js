@@ -38,8 +38,9 @@ document.addEventListener("DOMContentLoaded", function () {
         video.setAttribute('data-prev-breakpoint', newBreakpoint.toString());
 
         const aspectRatios = video.getAttribute('r-video_aspect-ratios');
+        let closestRatio = null;
         if (aspectRatios) {
-            const closestRatio = calculateClosestRatio(aspectRatios, video);
+            closestRatio = calculateClosestRatio(aspectRatios, video);
         }
 
         const videoId = video.getAttribute('r-video_id');
@@ -50,8 +51,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        let autoFormat = video.getAttribute('r-video_autoformat') ? (video.getAttribute('r-video_autoformat') === 'true' ? 'f_auto' : `f_${video.getAttribute('r-video_autoformat')}`) : 'f_auto';
-        let autoQuality = video.getAttribute('r-video_autoquality') ? (video.getAttribute('r-video_autoquality') === 'true' ? 'q_auto' : `q_${video.getAttribute('r-video_autoquality')}`) : 'q_auto';
+        let autoFormat = video.getAttribute('r-video_autoformat') ? (video.getAttribute('r-video_autoformat') === 'auto' ? 'f_auto' : `f_${video.getAttribute('r-video_autoformat')}`) : '';
+        let autoQuality = video.getAttribute('r-video_autoquality') ? (video.getAttribute('r-video_autoquality') === 'auto' ? 'q_auto' : `q_${video.getAttribute('r-video_autoquality')}`) : '';
 
         const videoUrl = `https://res.cloudinary.com/${localCloudName}/video/upload/${autoFormat},${autoQuality}${newBreakpoint ? `,w_${newBreakpoint}` : ''}${closestRatio ? `,ar_${closestRatio}` : ''}/${videoId}.webm`;
         const source = video.querySelector('source') || document.createElement('source');
