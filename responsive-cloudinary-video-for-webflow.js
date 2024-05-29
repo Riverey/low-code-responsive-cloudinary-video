@@ -1,4 +1,4 @@
-//1.0.7
+//1.0.8
 document.addEventListener("DOMContentLoaded", function () {
     const defaultBreakpoints = "1920, 1440, 1280, 992, 768, 480";
     const cloudName = (document.querySelector('[r-video_cloud-name]') || {}).getAttribute('r-video_cloud-name') || null;
@@ -87,7 +87,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         const autoPoster = video.getAttribute('r-video_autoposter') ? video.getAttribute('r-video_autoposter') : true;
-        const posterImage = `https://res.cloudinary.com/${localCloudName}/video/upload/pg_1,w_${newBreakpoint},q_auto/${videoId}.webp`;
+        let posterUrl = `https://res.cloudinary.com/${localCloudName}/video/upload/`;
+        let posterParameters = [];
+        posterParameters.push('pg_1');
+        posterParameters.push('c_fill');
+        if (newBreakpoint) posterParameters.push(`w_${newBreakpoint}`);
+        if (closestRatio) posterParameters.push(`ar_${closestRatio}`);
+        posterUrl += posterParameters.join(',');
+        posterUrl += `/${videoId}.webp`;
 
         if (autoPoster) {
             if (lazyLoad) {
